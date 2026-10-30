@@ -1,56 +1,218 @@
 <!DOCTYPE html>
-<html>
-<head><title>Event Management System</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Management System</title>
+  <style>
+    :root {
+      --bg: #f3f4f8;
+      --card: #ffffff;
+      --text: #1f2430;
+      --muted: #6b7280;
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --accent: #10b981;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      padding: 32px 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    header h1 { font-size: 2rem; letter-spacing: 0.5px; }
+    header p { opacity: 0.85; margin-top: 6px; }
+
+    main {
+      max-width: 1000px;
+      margin: 28px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover { background: var(--primary-dark); }
+    button:active { transform: scale(0.98); }
+    button.green { background: var(--accent); }
+    button.green:hover { background: #059669; }
+
+    ul { list-style: none; max-height: 260px; overflow-y: auto; }
+
+    li {
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      font-size: 0.92rem;
+    }
+
+    #bookings li { border-left-color: var(--accent); }
+
+    .empty { color: var(--muted); font-style: italic; border-left-color: var(--border); }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 24px 0 32px;
+    }
+
+    @media (max-width: 720px) {
+      main { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
 <body>
-  <h1>Event Management System</h1>
+  <header>
+    <h1>Event Management System</h1>
+    <p>Create events and book seats</p>
+  </header>
 
-  <h3>Create Event</h3>
-  <input id="ev_name" placeholder="Name">
-  <input id="ev_date" placeholder="Date">
-  <input id="ev_loc" placeholder="Location">
-  <input id="ev_cap" placeholder="Capacity" type="number">
-  <button onclick="addEvent()">Add Event</button>
+  <main>
+    <section class="card">
+      <h3>Create Event</h3>
+      <div class="form-row">
+        <input id="ev_name" placeholder="Event name">
+        <input id="ev_date" placeholder="Date (e.g. 2026-11-15)">
+        <input id="ev_loc" placeholder="Location">
+        <input id="ev_cap" placeholder="Capacity" type="number">
+        <button onclick="addEvent()">Add Event</button>
+      </div>
+    </section>
 
-  <h3>Events</h3>
-  <ul id="events"></ul>
+    <section class="card">
+      <h3>Book a Seat</h3>
+      <div class="form-row">
+        <input id="bk_eid" placeholder="Event ID" type="number">
+        <input id="bk_att" placeholder="Attendee name">
+        <button class="green" onclick="book()">Book</button>
+      </div>
+    </section>
 
-  <h3>Book a Seat</h3>
-  <input id="bk_eid" placeholder="Event ID" type="number">
-  <input id="bk_att" placeholder="Attendee name">
-  <button onclick="book()">Book</button>
+    <section class="card">
+      <h3>Events</h3>
+      <ul id="events"></ul>
+    </section>
 
-  <h3>Bookings</h3>
-  <ul id="bookings"></ul>
+    <section class="card">
+      <h3>Bookings</h3>
+      <ul id="bookings"></ul>
+    </section>
+  </main>
+
+  <footer>3 tier microservices app on Kubernetes, deployed by Jenkins</footer>
 
   <script>
     const $ = id => document.getElementById(id);
+
+    function emptyItem(list, text) {
+      const li = document.createElement('li');
+      li.className = 'empty';
+      li.textContent = text;
+      list.appendChild(li);
+    }
+
     async function load() {
       const e = await (await fetch('/api/events')).json();
       const b = await (await fetch('/api/bookings')).json();
+
       $('events').innerHTML = '';
+      if (e.length === 0) emptyItem($('events'), 'No events yet');
       e.forEach(x => {
         const li = document.createElement('li');
         li.textContent = x.id + ': ' + x.name + ' | ' + x.date + ' | ' + x.location + ' | cap ' + x.capacity;
         $('events').appendChild(li);
       });
+
       $('bookings').innerHTML = '';
+      if (b.length === 0) emptyItem($('bookings'), 'No bookings yet');
       b.forEach(x => {
         const li = document.createElement('li');
         li.textContent = 'Booking ' + x.id + ': event ' + x.event_id + ' for ' + x.attendee;
         $('bookings').appendChild(li);
       });
     }
+
     async function addEvent() {
       await fetch('/api/events', {method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({name: $('ev_name').value, date: $('ev_date').value,
                               location: $('ev_loc').value, capacity: $('ev_cap').value})});
+      $('ev_name').value = ''; $('ev_date').value = ''; $('ev_loc').value = ''; $('ev_cap').value = '';
       load();
     }
+
     async function book() {
       await fetch('/api/bookings', {method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({event_id: $('bk_eid').value, attendee: $('bk_att').value})});
+      $('bk_eid').value = ''; $('bk_att').value = '';
       load();
     }
+
     load();
   </script>
 </body>
