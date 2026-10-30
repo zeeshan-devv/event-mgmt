@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head><title>Event Management System</title></head>
+<body>
+  <h1>Event Management System</h1>
+
+  <h3>Create Event</h3>
+  <input id="ev_name" placeholder="Name">
+  <input id="ev_date" placeholder="Date">
+  <input id="ev_loc" placeholder="Location">
+  <input id="ev_cap" placeholder="Capacity" type="number">
+  <button onclick="addEvent()">Add Event</button>
+
+  <h3>Events</h3>
+  <ul id="events"></ul>
+
+  <h3>Book a Seat</h3>
+  <input id="bk_eid" placeholder="Event ID" type="number">
+  <input id="bk_att" placeholder="Attendee name">
+  <button onclick="book()">Book</button>
+
+  <h3>Bookings</h3>
+  <ul id="bookings"></ul>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    async function load() {
+      const e = await (await fetch('/api/events')).json();
+      const b = await (await fetch('/api/bookings')).json();
+      $('events').innerHTML = '';
+      e.forEach(x => {
+        const li = document.createElement('li');
+        li.textContent = x.id + ': ' + x.name + ' | ' + x.date + ' | ' + x.location + ' | cap ' + x.capacity;
+        $('events').appendChild(li);
+      });
+      $('bookings').innerHTML = '';
+      b.forEach(x => {
+        const li = document.createElement('li');
+        li.textContent = 'Booking ' + x.id + ': event ' + x.event_id + ' for ' + x.attendee;
+        $('bookings').appendChild(li);
+      });
+    }
+    async function addEvent() {
+      await fetch('/api/events', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name: $('ev_name').value, date: $('ev_date').value,
+                              location: $('ev_loc').value, capacity: $('ev_cap').value})});
+      load();
+    }
+    async function book() {
+      await fetch('/api/bookings', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({event_id: $('bk_eid').value, attendee: $('bk_att').value})});
+      load();
+    }
+    load();
+  </script>
+</body>
+</html>
